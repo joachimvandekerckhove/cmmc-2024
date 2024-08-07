@@ -9,7 +9,8 @@ all: pdf/00-intro-bayes.pdf \
      pdf/05-online-sellers-solution.pdf \
      pdf/04-online-sellers.pdf \
      pdf/10-mpt-recognition-memory.pdf \
-     pdf/11-mpt-with-jasp.pdf \
+     pdf/11-mpt-with-jags.pdf \
+     pdf/12-mpt-exercise.pdf \
      pdf/12-mpt-solution.pdf
 
 pdf/%.pdf: src/%.Rmd
@@ -30,7 +31,9 @@ push:
 	git add . && git commit -am"Automated commit" && git push
 
 tidy:
-	-rm -f pdf/*.aux pdf/*.dvi pdf/*.log src/*.log pdf/*.bbl pdf/*.blg pdf/*.brf pdf/*.fls pdf/*.toc pdf/*.thm pdf/*.out pdf/*.vrb pdf/*.snm pdf/*.nav pdf/*.fdb_latexmk
+	-rm -f pdf/*.aux pdf/*.dvi pdf/*.log src/*.log pdf/*.bbl \
+               pdf/*.blg pdf/*.brf pdf/*.fls pdf/*.toc pdf/*.thm \
+               pdf/*.out pdf/*.vrb pdf/*.snm pdf/*.nav pdf/*.fdb_latexmk
 
 clean:
 	-rm -f pdf/*

@@ -1,0 +1,166 @@
+---
+title: "Multinomial Processing Tree Models of Recognition Memory"
+author: "Joachim Vandekerckhove and Michael Lee"
+output:
+  beamer_presentation:
+    incremental: yes
+header-includes:
+  - \input{includes/beamerpheader.tex}
+knit: (function(inputFile, encoding) {
+    rmarkdown::render(inputFile, encoding = encoding, output_dir = "../pdf")
+  })
+bibliography: ./includes/cogs110B.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Multinomial Processing Trees
+
+- Multinomial Processing Trees (MPTs) are a modeling approach (not a specific model), and have been used in a wide variety of areas including memory, decision making, and social psychology [@BatchelderRiefer1980; @erdfelder2009multinomial]
+- MPTs are usually applied to categorical data
+  - e.g., discrete decisions rather than continuous response times
+- MPTs make assumptions about how the different categories of behavior could be generated, in terms of probabilistic processes controlled by underlying psychological variables
+
+# Recognition memory task
+
+- In an old/new recognition memory task (example [here](https://youtu.be/57fp4Cjtmq0)), there are two parts
+  1. **study**: a list of items (words, pictures, ...) are presented, usually one at a time
+  2. **test**: a list of items is presented, one at a time, with some items coming from the original study list and some items being new
+- On each test trial, the participant is asked whether the item is "old" or "new"
+- Behavior can be summarized in terms of four counts
+
+\begin{center}
+\begin{tabular}{cccc}
+\hline
+& \text{Study Item} & \text{Not Study Item} \\
+\hline
+\text{Answer "Old"} & \text{hit} & \text{false alarm} \\
+\text{Answer "New"} & \text{miss} & \text{correct rejection} \\
+\hline
+\end{tabular}
+\end{center}
+
+
+# One-High Threshold Model
+
+\includegraphics[width = \textwidth]{includes/oneHighThreshold.eps}
+
+- The one-high threshold MPT model assumes that a participant with some probability remembers an item was on the study list
+  - if they remember the item, they correctly say "old"
+  - if they do not remember the item (either because it was on the study list but they forget, or because it was not on the study list) they guess
+- The model has two parameters
+  - a probability \( \rho \) of remembering a studied item when it is presented during testing
+  - a probability \( \gamma \) of guessing by responding "old" if there is no memory of the item
+
+# One-High Threshold Model
+
+\includegraphics[width = \textwidth]{includes/oneHighThreshold.eps}
+
+- The remembering and guessing parameters can be inferred based solely on the counts of the numbers of hits and false alarms from the number of old and new test trials
+  - misses and correct rejections are just the complement of hits and false alarms, and do not provide extra information
+- The one-high threshold model assumes the hit rate \( \theta^\mathrm{h} \) and the false alarm rate \( \theta^\mathrm{f} \) are:
+    - $\theta^\mathrm{h} = \rho + \left(1-\rho\right)\gamma$ 
+    - $\theta^\mathrm{f} = \gamma$
+
+# One-High Threshold Model
+
+- For data that have \( k^\mathrm{h} \) hits out of \( n_o \) old items and \( k^\mathrm{f} \) false alarms out of \( n_n \) new items, the one-high threshold model assumes
+    - $k^\mathrm{h} \sim \operatorname{binomial}\bigl(\theta^\mathrm{h}, n_o\bigr)$
+    - $k^\mathrm{f} \sim \operatorname{binomial}\bigl(\theta^\mathrm{f}, n_n\bigr)$
+
+- The model also assumes that all remembering rates \( \rho \) and guessing rates \( \gamma \) are a priori equally likely, so that
+    - $\rho \sim \operatorname{uniform}\bigl(0, 1\bigr)$
+    - $\gamma \sim \operatorname{uniform}\bigl(0, 1\bigr)$
+
+# Amyloid positivity data
+
+- These data come from a clinical setting, and involve memory ability tests for 60 patients using the Rey auditory verbal learning test [@bean2011rey]
+  - In the recognition task, the patients study a set of 15 words, and tested on 30 words, made up of 15 old and 15 new words
+- Patients also had a cerebrospinal fluid measurement taken to classify their levels beta amyloid as "positive" or "negative"
+  - amyloid positivity is thought to be a pre-symptomatic indicator of Alzheimer's disease
+
+# Amyloid positivity data
+
+\[
+\begin{array}{ccc}
+\toprule
+\text{Amyloid Status} & \text{Hits} & \text{False Alarms} \\
+\midrule
+\text{positive} & 8 & 4 \\
+\text{negative} & 12 & 1 \\
+\text{negative} & 14 & 0 \\
+\text{positive} & 9 & 4 \\
+\textellipsis & \textellipsis & \textellipsis \\
+\bottomrule
+\end{array}
+\]
+
+# Amyloid Negative inferences
+
+\begin{center}
+\includegraphics[width = 0.5\textwidth, trim = {0cm 0 0cm 1.75cm}, clip]{includes/oneHighThreshold_1_betaAmyloidNegative.eps}
+\end{center}
+
+- The figure shows the joint and marginal posterior distributions for the remembering and guessing parameters
+- Patients remember around 80\% of the items, and guess "old" about 10\% of the time when they do not remember
+
+# Amyloid Positive Inferences
+
+\begin{center}
+\includegraphics[width = 0.5\textwidth, trim = {0cm 0 0cm 1.5cm}, clip]{includes/oneHighThreshold_1_betaAmyloidPositive.eps}
+\end{center}
+
+- Patients remember around 60-70\% of the items, and guess "old" about 10\% of the time when they do not remember
+- Very similar guessing behavior to amyloid negative group, but lower probability of remembering
+
+# Two-High Threshold Model
+
+\includegraphics[width = \textwidth]{includes/twoHighThreshold.eps}
+\vspace{0.5em}
+
+- The two-high threshold MPT model has the same two parameters, and still assumes that a participant has some probability of remembering an item was on the study list
+- The decision process during testing now works a little differently
+  1. if they remember the item, they correctly say "old"
+  2. if they remember that the item was *not* on the study list, they correctly say "new"
+  3. if they do not remember the item, they guess
+
+# Two-High Threshold Model
+
+\includegraphics[width = \textwidth]{includes/twoHighThreshold.eps}
+\vspace{0.5em}
+
+- The new assumptions do not change how hits are produced
+  - Either by remembering the item or guessing "old"
+- But they do change how false alarms are produced
+  - By explicitly remembering the item was not on the list, or by guessing "old"
+- The hit rate \( \theta^\mathrm{h} \) and the false alarm rate \( \theta^\mathrm{f} \) are now
+    - $\theta^\mathrm{h} = \rho + \left(1-\rho\right)\gamma$
+    - $\theta^\mathrm{f} = \left(1-\rho\right)\gamma$
+
+# Amyloid negative inferences
+
+\begin{center}
+\includegraphics[width = 0.5\textwidth, trim = {0cm 0 0cm 0cm}, clip]{includes/twoHighThreshold_1_betaAmyloidNegative.eps}
+\end{center}
+
+- The figure shows the joint and marginal posterior distributions for the remembering and guessing parameters
+- Patients remember around 70-80\% of the items, and guess "old" about 30\% of the time when they do not remember
+
+# Amyloid positive inferences
+
+\begin{center}
+\includegraphics[width = 0.5\textwidth, trim = {0cm 0 0cm 1cm}, clip]{includes/twoHighThreshold_1_betaAmyloidPositive.eps}
+\end{center}
+
+- Patients remember around 60\% of the items, and guess "old" about 20\% of the time when they do not remember
+- The remembering rate is lower, and the guessing rate now also differs between the amyloid negative and positive groups
+
+# Key points
+
+- MPT models make assumptions about how categorical observed behavior can be decomposed into sequences of probabilistic events
+- The one-high threshold and two-high threshold models of recognition memory are widely-used MPT models
+- The inferences for the amyloid positivity data showed meaningful differences between the clinical groups, but the exact nature of the differences in remembering and guessing depends on the model
+
+# References

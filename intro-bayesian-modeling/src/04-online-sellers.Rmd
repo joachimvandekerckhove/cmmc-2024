@@ -1,6 +1,6 @@
 ---
 title: "Online sellers example"
-author: "Joachim Vandekerckhove"
+author: "Joachim Vandekerckhove and Michael Lee"
 output:
   beamer_presentation:
     incremental: yes
