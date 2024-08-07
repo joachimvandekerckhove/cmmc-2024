@@ -1,0 +1,106 @@
+---
+title: "If you're a Bayesian you can do anything that God forbids\n - Willem Heiser"
+author: "Joachim Vandekerckhove"
+output:
+  beamer_presentation:
+    incremental: yes
+header-includes:
+  - \input{includes/beamerpheader.tex}
+knit: (function(inputFile, encoding) {
+    rmarkdown::render(inputFile, encoding = encoding, output_dir = "../pdf")
+  })
+---
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+library(ggplot2)
+library(rjags)
+library(coda)
+library(tibble)
+library(dplyr)
+
+# Set seed for reproducibility
+set.seed(123)
+```
+
+## Things you can do if you're a Bayesian
+  
+ - Accumulate evidence for the absence of an effect
+ - Draw valid conclusions with almost no data
+ - Say things about means without knowing much about the basic units
+
+## Order of operations
+
+   In general, order of operations matters:
+   $$f \circ g (x) \neq g \circ f (x)$$
+
+
+## Estimating parameters is an operation
+
+  In science, we often want to make statements about averages.\pause
+  
+  Estimating model parameters from data is an operation: $$\hat\theta = f(x)$$\pause
+  
+  Do we want the \emph{average model parameters of the data} or the \emph{model parameters of the average data}?
+  
+  $$\overline{f(x)} \neq f\left(\overline{x}\right)$$
+
+## Insight learning
+
+```{r fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, message=FALSE}
+x <- 1:100
+y <- ifelse(x < 50, 0, 1)
+df1 <- data.frame(x = x, y = y)
+
+p1 <- ggplot(df1, aes(x = x, y = y)) +
+  geom_step() +
+  labs(title = "One-shot learning, one participant", x = "Blocks", y = "Accuracy") +
+  theme_minimal()
+
+ggsave("includes/step1.eps", p1)
+print(p1)
+```
+
+
+## Insight learning
+
+```{r fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, message=FALSE}
+df2 <- data.frame(x = rep(1:100, 10), 
+                  y = unlist(lapply(1:10, function(i) ifelse(1:100 < sample(35:65, 1), 0, 1))), 
+                  group = rep(1:10, each = 100))
+
+p2 <- ggplot(df2, aes(x = x, y = y, group = group, color = as.factor(group))) +
+  geom_step() +
+  labs(title = "Ten participants", x = "Blocks", y = "Accuracy") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+ggsave("includes/step2.eps", p2)
+print(p2)
+```
+
+
+## Insight learning
+
+```{r fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, message=FALSE}
+curve <- function(x) {
+  1 / (1 + exp(-0.1 * (x - 50)))
+}
+df3 <- data.frame(x = 1:100, y = curve(1:100))
+
+p3 <- ggplot(df3, aes(x = x, y = y)) +
+  geom_line() +
+  labs(title = "Average of many participants", x = "Blocks", y = "Accuracy") +
+  theme_minimal()
+ggsave("includes/step3.eps", p3)
+print(p3)
+```
+
+## Insight learning
+  The ``average" learning curve looks nothing like the person-specific learning curve!
+  
+  \centering
+  \includegraphics[scale=0.5]{includes/step1.eps}
+  \includegraphics[scale=0.5]{includes/step3.eps}
+  
+  

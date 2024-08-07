@@ -4,6 +4,7 @@ RERUNBIB := "No file.*\.bbl|Citation.*undefined|.*There were undefined reference
 all: pdf/00-intro-bayes.pdf \
      pdf/01-medium-bayes.pdf \
      pdf/02-advanced-bayes.pdf \
+     pdf/02-advanced-bayes-solution.pdf \
      pdf/03-super-bayes.pdf \
      pdf/05-online-sellers-worksheet.pdf \
      pdf/04-online-sellers.pdf \
