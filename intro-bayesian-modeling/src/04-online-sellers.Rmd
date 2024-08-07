@@ -1,0 +1,105 @@
+---
+title: "Online sellers example"
+author: "Joachim Vandekerckhove"
+output:
+  beamer_presentation:
+    incremental: yes
+header-includes:
+  - \input{includes/beamerpheader.tex}
+knit: (function(inputFile, encoding) {
+    rmarkdown::render(inputFile, encoding = encoding, output_dir = "../pdf")
+  })
+---
+
+## Online Sellers
+
+- This introductory modeling example comes from the YouTube channel [3Blue1Brown](https://www.youtube.com/watch?v=8idr1WZ1A7Q&t=25s), and involves comparing the positive ratings of three online sellers.
+- They each have different numbers of positive ratings from different numbers of total user evaluations.
+
+\begin{center}
+\begin{tabular}{cccc}
+\hline
+Seller & Positive & Total & Percentage \\
+\hline
+One & 10 & 10 & 100\% \\
+Two & 48 & 50 & 96\% \\
+Three & 186 & 200 & 93\% \\
+\hline
+\end{tabular}
+\end{center}
+
+- The research question is to infer from these data which seller has the highest probability of providing a positive buying experience.
+
+## Online Sellers (Continued)
+
+- The data are the counts \(k_i\) of positive ratings out of \(n_i\) total evaluations for the \(i\)th seller.
+  - This means that \(k_1=10\), \(k_2=48\), \(k_3=186\) and \(n_1=10\), \(n_2=50\), \(n_3=200\).
+- A simple statistical model of the rating behavior is to assume the \(i\)th seller has some underlying probability \(\theta_i\) of generating a positive review each time they are evaluated.
+  - \(\theta_i\) are parameters, since they are latent probabilities controlling the process that generates the data.
+  - Let us assume that these probabilities are equally likely to take any possible value, so \(\theta_i \sim \mathrm{uniform}(0,1)\).
+- The process that generates the positive counts is then given by \(k_i \sim \mathrm{binomial}(\theta_i, n_i)\).
+
+## Exercise
+
+Implement the model with these data and assumptions in JAGS.
+Which seller is better?
+
+- The probabilities are equally likely to take any possible value, so \(\theta_i \sim \mathrm{uniform}(0,1)\).
+- The process that generates the positive counts is given by \(k_i \sim \mathrm{binomial}(\theta_i, n_i)\).
+
+\begin{center}
+\begin{tabular}{cccc}
+\hline
+Seller & Positive & Total & Percentage \\
+\hline
+One & 10 & 10 & 100\% \\
+Two & 48 & 50 & 96\% \\
+Three & 186 & 200 & 93\% \\
+\hline
+\end{tabular}
+\end{center}
+
+## Rate Inferences
+
+- The posterior distributions for the underlying rate of positive ratings show what values are possible, based on the data and the assumptions of the model.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{includes/onlineSellers_1.png}
+\end{figure}
+
+## Rate Inferences (Continued)
+
+- The posterior distributions can be summarized by 95\% credible intervals, which are \((0.70, 1.00)\) for Seller 1, \((0.86, 0.99)\) for Seller 2, and \((0.89, 0.96)\) for Seller 3.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{includes/onlineSellers_1.png}
+\end{figure}
+
+
+## Which Seller is Better?
+
+- The posterior distributions represent everything we know about the possible underlying rates of positive reviews.
+- But, answering "Which seller is better?" requires being clear on what it means to be better, and applying that criterion to the posterior distributions.
+  - One approach would be to find the seller who is most likely to have a better positive rate than the other two, which is Seller 2.
+
+\begin{center}\footnotesize
+\begin{tabular}{cccc}
+\hline
+& Seller 1 & Seller 2 & Seller 3 \\
+\hline
+Seller 1 & -- & 0.46 & 0.57 \\
+Seller 2 & 0.54 & -- & 0.70 \\
+Seller 3 & 0.43 & 0.30 & -- \\
+\hline
+\end{tabular}
+\end{center}
+
+- Another approach would be to find the seller with the greatest probability of having at least a 90\% positive rate.
+  - These are 0.68 for Seller 1, 0.89 for Seller 2, 0.92 for Seller 3.
+
+## Key Points
+
+- Online sellers is a simple introductory model, but has the basic features of a parameter that controls a data-generating process, and observed data.
+- Inference about parameters represents uncertainty about their possible values, based on the available data and the assumptions of the model.
