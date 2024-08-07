@@ -1,0 +1,80 @@
+---
+title: "Explanatory models"
+author: "Joachim Vandekerckhove"
+output:
+  beamer_presentation:
+    incremental: yes
+header-includes:
+  - \input{includes/beamerpheader.tex}
+knit: (function(inputFile, encoding) {
+    rmarkdown::render(inputFile, encoding = encoding, output_dir = "../pdf")
+  })
+---
+
+## Types of hierarchical models
+
+The basic form of a hierarchy in a parametric model is:
+
+$${\mathcal{M}}_s: \begin{cases}
+    \forall{p \in (1,\ldots,P)}: \mu_p \sim N(M, T) \\
+    \forall{j \in (1,\ldots,J), p \in (1,\ldots,P)}: x_{p,j} \sim N(\mu_p, \tau) \\
+    M \sim N(0, 0.1)\\
+    \tau \sim \Gamma(4, 0.01)\\
+    T \sim \Gamma(4, 0.01)\\
+\end{cases}$$
+
+The hierarchical part is $\mu_p \sim N(M, T)$, but this is only one possible hierarchy.
+
+## Difference structure
+
+Consider one alternative:
+$$\mu_{p|g} \sim N(M_g, T)$$
+
+Here the parameter $M$ is determined by group identity $g$, and person $p$, who is a member of $g$, has some expected parameter value based on that.  
+
+If there are two groups, we may be interested in between-group differences $D_{21} = M_2 - M_1$.
+
+## Regression structure
+
+The difference structure $D_{21} = M_2 - M_1$ is a very basic form of linear regression.  The difference structure is equivalent to this:
+$$\mu_{p} \sim N(M_1 + z_pD_{21},T)$$
+where $z_p = 0$ if $p$ is in group 1 and $z_p = 1$ if $p$ is in group 2.
+
+This way, $z$ acts as a linear predictor of the \emph{person-specific hierarchical mean}.
+
+## Person-specific hierarchical mean
+
+Hierarchical means can belong to an individual.
+
+We then interpret it as the mean of the population of individuals who have predictors similar to this one.
+
+But it is possible (and common) to have a hierarchical mean that is not shared with any other participant in our sample.
+
+Consider that the predictor $z$ could be not group membership, but some continuous predictor like age, personality, etc.
+
+## Person-specific hierarchical mean
+
+In the case where $z$ is a property of the person, and
+$$\mu_{p} \sim N(\beta_0 + \beta_1z_p,T)$$
+... we have a standard linear regression structure with intercept $\beta_0$ and regression weight $\beta_1$.
+
+## Person side and item side predictors
+
+Suppose that there are other sources of variability in the data -- the difficulty of items $i$ in a task might vary as well.  Then,
+
+$$\mu_{p,i} \sim N(\beta_0 + \beta_1z_p + \beta_2c_i,T)$$
+Here $z_p$ would be called a "person-side" predictor and $c_i$ an "item-side" predictor.
+
+You could also have an "interaction side."
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+library(ggplot2)
+library(rjags)
+library(coda)
+library(tibble)
+library(dplyr)
+
+# Set seed for reproducibility
+set.seed(123)
+```
