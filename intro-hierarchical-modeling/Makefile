@@ -1,8 +1,7 @@
 RERUN := "(undefined references|Rerun to get (cross-references|the bars|point totals) right|Table widths have changed. Rerun LaTeX.|Linenumber reference failed)"
 RERUNBIB := "No file.*\.bbl|Citation.*undefined|.*There were undefined references"
 
-all: pdf/00-the-aggregation-fallacy.pdf \
-     pdf/01-the-aggregation-fallacy.pdf \
+all: pdf/01-the-aggregation-fallacy.pdf \
      pdf/02-the-aggregation-fallacy-solution.pdf \
      pdf/03-if-youre-a-bayesian.pdf \
      pdf/04-online-sellers-revisited.pdf \

@@ -1,0 +1,149 @@
+---
+title: "If you're a Bayesian you can do anything that God forbids ( - Willem Heiser)"
+author: "Joachim Vandekerckhove"
+output:
+  beamer_presentation:
+    incremental: yes
+header-includes:
+  - \input{includes/beamerpheader.tex}
+knit: (function(inputFile, encoding) {
+    rmarkdown::render(inputFile, encoding = encoding, output_dir = "../pdf")
+  })
+---
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+library(ggplot2)
+library(rjags)
+library(coda)
+library(tibble)
+library(dplyr)
+
+options(scipen=1, digits=2)
+
+# Set seed for reproducibility
+set.seed(123)
+```
+
+## Unorthodox things you can do if you're a Bayesian
+
+ - Accumulate evidence for the absence of an effect
+ - Draw valid conclusions with almost no data
+ - Say things about means without knowing much about the basic units
+
+## Means without knowing much about the basic units
+
+```{r, fig.width = 4, fig.height = 3, fig.align='center', echo=TRUE, message=FALSE}
+N <- 80
+group <- rep(1:2, each = N/2)
+true_score <-
+  rnorm(N,
+        mean = rep(c(50, 55), each = N/2),
+        sd   = 2)  # True scores for each participant
+observed_score <- true_score +
+  rnorm(N,
+        mean =  0,
+        sd   =  5)  # Noisy observations
+data <- data.frame(participant = 1:N,
+                   group = factor(group),
+                   true_score, observed_score)
+```
+##
+```{r, fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, message=FALSE}
+# Visualize the generated data
+p1 <- ggplot(data, aes(x = group, y = observed_score)) +
+  geom_boxplot() +
+  geom_jitter(width = 0.2) +
+  labs(title = "Observed Scores by Group", x = "Group", y = "Observed Score")
+print(p1)
+```
+##
+```{r}
+model_string <- "
+model {
+  for (i in 1:N) {
+    # Likelihood
+    observed_score[i] ~ dnorm(true_score[i], tau)
+    # Hierarchical model
+    true_score[i]     ~ dnorm(mu[group[i]], tau_true)
+  }
+  diff_mu ~ dnorm(0, 0.001)
+  mu[1]   ~ dunif(0, 100)
+  mu[2] <- mu[1] + diff_mu
+  tau      ~ dgamma(0.1, 0.1)
+  tau_true ~ dgamma(0.1, 0.1)
+}
+"
+```
+##
+```{r}
+data_list <- list(
+  N = N,
+  observed_score = data$observed_score,
+  group = as.numeric(data$group)
+)
+
+# Initial values
+inits <- function() {
+  list(
+    tau        = rgamma(1, 0.1, 0.1),
+    tau_true   = rgamma(1, 0.1, 0.1),
+    true_score = runif(N, 0, 100)
+  )
+}
+```
+##
+```{r}
+jags_model <- jags.model(textConnection(model_string),
+                         data     = data_list,
+                         inits    =     inits,
+                         n.chains =        3 ,
+                         n.adapt  =     1000 )
+```
+##
+\footnotesize
+```{r}
+update(jags_model, n.iter = 1000)
+samples <- coda.samples(jags_model,
+                        variable.names = c("diff_mu",
+                                           "true_score"),
+                        n.iter = 5000)
+```
+
+```{r}
+# Summarize the results
+summary_diff_mu <- summary(samples)$
+  statistics["diff_mu", ]
+print(summary_diff_mu)
+```
+##
+\footnotesize
+```{r}
+# Extract true scores from the posterior samples
+true_scores_posterior <- as.data.frame(as.matrix(samples)) %>%
+  select(starts_with("true_score")) %>%
+  apply(2, mean)
+
+# Add the recovered true scores to the data frame
+data$recovered_true_score <- true_scores_posterior
+
+# Scatter plot of true scores vs recovered true scores
+p2 <- ggplot(data, aes(x = true_score, y = recovered_true_score, 
+                       color = group)) +
+  geom_point() +
+  labs(x = "True Score", y = "Recovered Score") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+##
+```{r, fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, message=FALSE}
+print(p2)
+```
+
+## Hierarchical recovery beats individual recovery
+
+The difference between groups is well recovered as $`r summary_diff_mu[[1]]` \pm `r summary_diff_mu[[2]]`$, even though the true scores within each group are poorly recovered.
+
+```{r, fig.width = 3, fig.height = 2, fig.align='center', echo=FALSE, message=FALSE}
+print(p2)
+```
