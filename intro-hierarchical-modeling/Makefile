@@ -7,7 +7,8 @@ all: pdf/00-the-aggregation-fallacy.pdf \
      pdf/03-if-youre-a-bayesian.pdf \
      pdf/04-online-sellers-revisited.pdf \
      pdf/05-online-sellers-revisited-solution.pdf \
-     pdf/06-student-grades.pdf
+     pdf/06-student-grades.pdf \
+     pdf/07-explanatory-models.pdf
 
 pdf/%.pdf: src/%.Rmd
 	Rscript -e "rmarkdown::render(input='$<',output_dir='pdf')"
