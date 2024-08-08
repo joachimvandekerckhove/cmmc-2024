@@ -9,6 +9,7 @@ header-includes:
 knit: (function(inputFile, encoding) {
     rmarkdown::render(inputFile, encoding = encoding, output_dir = "../pdf")
   })
+bibliography: includes/cogs110B.bib
 ---
 
 ## Types of hierarchical models
@@ -20,61 +21,295 @@ $${\mathcal{M}}_s: \begin{cases}
     \forall{j \in (1,\ldots,J), p \in (1,\ldots,P)}: x_{p,j} \sim N(\mu_p, \tau) \\
     M \sim N(0, 0.1)\\
     \tau \sim \Gamma(4, 0.01)\\
-    T \sim \Gamma(4, 0.01)\\
+    T \sim \Gamma(4, 0.01)
 \end{cases}$$
 
-The hierarchical part is $\mu_p \sim N(M, T)$, but this is only one possible hierarchy.
+The hierarchical part is $\mu_p \sim N(M, T)$, but this is only one
+possible hierarchy.
 
 ## Difference structure
 
-Consider one alternative:
-$$\mu_{p|g} \sim N(M_g, T)$$
+Consider one alternative: $$\mu_{p|g} \sim N(M_g, T)$$
 
-Here the parameter $M$ is determined by group identity $g$, and person $p$, who is a member of $g$, has some expected parameter value based on that.  
+Here the parameter $M$ is determined by group identity $g$, and person
+$p$, who is a member of $g$, has some expected parameter value based on
+that.
 
-If there are two groups, we may be interested in between-group differences $D_{21} = M_2 - M_1$.
+If there are two groups, we may be interested in between-group
+differences $D_{21} = M_2 - M_1$.
+
 
 ## Regression structure
 
-The difference structure $D_{21} = M_2 - M_1$ is a very basic form of linear regression.  The difference structure is equivalent to this:
-$$\mu_{p} \sim N(M_1 + z_pD_{21},T)$$
-where $z_p = 0$ if $p$ is in group 1 and $z_p = 1$ if $p$ is in group 2.
+The difference structure $D_{21} = M_2 - M_1$ is a very basic form of
+linear regression. The difference structure is equivalent to this:
+$$\mu_{p} \sim N(M_1 + z_pD_{21},T)$$ where $z_p = 0$ if $p$ is in group
+1 and $z_p = 1$ if $p$ is in group 2.
 
-This way, $z$ acts as a linear predictor of the \emph{person-specific hierarchical mean}.
+This way, $z$ acts as a linear predictor of the
+\emph{person-specific hierarchical mean}.
 
 ## Person-specific hierarchical mean
 
 Hierarchical means can belong to an individual.
 
-We then interpret it as the mean of the population of individuals who have predictors similar to this one.
+We then interpret it as the mean of the population of individuals who
+have predictors similar to this one.
 
-But it is possible (and common) to have a hierarchical mean that is not shared with any other participant in our sample.
+But it is possible (and common) to have a hierarchical mean that is not
+shared with any other participant in our sample.
 
-Consider that the predictor $z$ could be not group membership, but some continuous predictor like age, personality, etc.
+Consider that the predictor $z$ could be not group membership, but some
+continuous predictor like age, personality, etc.
 
 ## Person-specific hierarchical mean
 
 In the case where $z$ is a property of the person, and
-$$\mu_{p} \sim N(\beta_0 + \beta_1z_p,T)$$
-... we have a standard linear regression structure with intercept $\beta_0$ and regression weight $\beta_1$.
+$$\mu_{p} \sim N(\beta_0 + \beta_1z_p,T)$$ ... we have a standard linear
+regression structure with intercept $\beta_0$ and regression weight
+$\beta_1$.
 
 ## Person side and item side predictors
 
-Suppose that there are other sources of variability in the data -- the difficulty of items $i$ in a task might vary as well.  Then,
+Suppose that there are other sources of variability in the data -- the
+difficulty of items $i$ in a task might vary as well. Then,
 
-$$\mu_{p,i} \sim N(\beta_0 + \beta_1z_p + \beta_2c_i,T)$$
-Here $z_p$ would be called a "person-side" predictor and $c_i$ an "item-side" predictor.
+$$\mu_{p,i} \sim N(\beta_0 + \beta_1z_p + \beta_2c_i,T)$$ Here $z_p$
+would be called a "person-side" predictor and $c_i$ an "item-side"
+predictor.
 
 You could also have an "interaction side."
 
-```{r setup, include=FALSE}
-# Load necessary libraries
-library(ggplot2)
-library(rjags)
-library(coda)
-library(tibble)
-library(dplyr)
 
-# Set seed for reproducibility
-set.seed(123)
-```
+## Plug then play
+
+Critically, *nothing in this framework depends on data being
+(conditionally) normally distributed*.
+
+So far we have "decomposed" the person-specific hierarchical mean, which
+is a parameter of the normal distribution:
+$$\mu_{p,i} \sim N(\beta_0 + \beta_1z_p + \beta_2c_i,T)$$
+
+
+
+## Plug then play
+
+If your data are Bernoulli distributed (say, participants getting items right or wrong), maybe you want to decompose the success rate parameter $\pi_{p,i}$ into a person ability parameter $\theta_p$ and an item difficulty parameter $\beta_i$:
+$$\begin{cases}
+  x_{p,i} \sim \text{Bernoulli}(\pi_{p,i}) \\
+  \pi_{p,i} = \text{ilogit}\left(\eta_{p,i}\right) \\
+  \eta_{p,i} = \theta_p - \beta_i \\
+  \beta_i  \sim N(0, T_\beta)\\
+  \theta_p \sim N(M, T_\theta)
+  \end{cases}
+$$
+
+## Linking functions
+
+Note that we're interested in decomposing the success rate, $\pi_{p,i}$, but instead work on a different parameter, $\eta_{p,i}$.
+
+We do that because $\pi_{p,i}$ (a probability) cannot easily be linearly decomposed, since it cannot be less than 0 or greater than 1
+
+The transformed parameter $\eta_{p,i}$ lives in the domain of the real numbers and thus can be linearly decomposed.
+
+In order to link $\eta_{p,i}$ to a probability, we need to *map* the parameter to the $(0,1)$ domain, where probabilities live.
+
+For this, we will use a *linking* function -- a function that takes as input $\eta_{p,i} \in \mathbb{R}$ and gives as output a value $(0,1)$.
+$$\mathbb{R} \overset{\text{link}}{\longrightarrow} (0,1)$$
+
+## Linking functions
+
+Which linking function you use depends on context (what is the valid range of the natural parameter?) and on culture.  Psychometricians will usually use the *logistic function* (also known as the *inverse logit*):
+
+$$\pi_{p,i} = \frac{1}{1 + \exp(-\eta_{p,i})}$$
+
+\begin{figure}
+  \centering
+  \includegraphics<1>[scale=0.67]{includes/ogive_1.eps}%
+  \includegraphics<2>[scale=0.67]{includes/ogive_2.eps}%
+\end{figure}
+
+
+## The Rasch model
+
+A much more convenient way of writing that is:
+$$
+\text{ilogit}\left(\eta_{ip}\right) = \text{ilogit}\left(\theta_p - \beta_i\right)
+$$ $$
+\Leftrightarrow\quad \text{logit}\left(\pi_{p,i}\right) = \theta_p - \beta_i
+$$
+
+This exact formulation is one of the most common item response models (there are a few). This is called the *Rasch* model, after Danish psychometrician Georg Rasch [@rasch1961general].
+
+(We're not getting into that.)
+
+## Plug then play
+
+The same logic can apply to more "exotic" distributions as well.
+
+So far we have decomposed the person-specific hierarchical mean (of a normal distribution) and the person-specific hierarchical probability of success (of a Bernoulli distribution).
+
+You can decompose the parameters of an arbitrary distribution ${\mathcal{D}}()$:
+$$X_* \sim {\mathcal{D}}\left(\theta_*,Z_*,\beta\right)$$
+... for some data $X_*$, predictors $Z_*$, and hierarchical parameter vector $\beta$.
+
+Let's explore a more exotic distribution.
+
+## Data analysis with diffusion models
+
+\centering
+\begin{tabular}{cll}
+\rowcolor{black}
+           & {\it\color{white}parameter} &  {\it\color{white}interpretation} \\
+\rowcolor{verylightgray}
+$\delta$   &  drift rate             &  dominance ($\eta$, $d'$) \\
+\rowcolor{lightgray}
+$\alpha$   &  boundary separation    &  caution \\
+\rowcolor{verylightgray}
+$\tau$     &  nondecision time       &  time for encoding and responding \\
+\rowcolor{lightgray}
+$\beta$    &  initial bias           & a priori response bias \\
+\end{tabular}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.66]{includes/rdmpmeth.eps}
+\end{figure}
+
+## Diffusion model parameter estimation
+
+\centering
+\begin{minipage}{.686\textwidth}
+\begin{tabular}{|cccc|}
+\rowcolor{black}
+{\it\color{white}person $p$} & {\it\color{white}condition $c$} & {\it\color{white}RT} & {\it\color{white}accuracy} \\ 
+1 & 3 & 0.71 & correct \\
+1 & 5 & 0.49 & correct \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ \\
+1 & 3 & 0.43 & error \\
+2 & 4 & 0.67 & error \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ \\
+9 & 2 & 0.61 & correct \\
+9 & 2 & 0.39 & error \\\hline
+\end{tabular}
+\end{minipage}
+\begin{minipage}{.3\textwidth}
+\begin{tabular}{|ccc|}
+\rowcolor{black}
+{\it\color{white}$\alpha_p$} & {\it\color{white}$\delta_{pc}$} & {\it\color{white}$\tau_p$} \\ 
+1.61 & 0.45 & 0.24 \\
+1.61 & 1.17 & 0.24 \\
+$\vdots$ & $\vdots$ & $\vdots$ \\
+1.61 & 0.53 & 0.24 \\
+2.14 & 0.08 & 0.31 \\
+$\vdots$ & $\vdots$ & $\vdots$ \\
+1.41 & 0.79 & 0.27 \\
+1.41 & 0.79 & 0.27 \\\hline
+\end{tabular}
+\end{minipage}
+\flushleft
+Often, we will perform *constrained parameter estimation* so (e.g.) each participant has one $\alpha_p$ and $\tau_p$, independent of
+condition
+
+## An explanatory diffusion model
+
+In the explanatory item response model, we decomposed the parameter $\eta$ into a mathematical expression that allows for structured differences between items, persons, etc. 
+
+By analogy, we could make an *explanatory diffusion model*, where the drift rate $\delta$ is given the same treatment 
+$$
+p(t_{p,c}, x_{p,c})  =  W(\delta_{p,c},\alpha_{p},\tau_{p},\beta_{p})$$ $$ =  W(\emph{\theta_{p} + \lambda_{c}},\alpha_{p},\tau_{p},\beta_{p})$$ $$ =  W(\emph{\theta_{p} + \gamma Z_{c}},\alpha_{p},\tau_{p},\beta_{p})
+$$
+
+## An explanatory diffusion model account of shape perception
+
+We used this model to revisit data from
+[@Vandekerckhove2007] (a shape perception study)\pause
+
+We decomposed the drift rate parameter to account for three independent variables in the experiment:\pause
+
+-   $Q_c = 1$ for trials with a quantitative change, $Q_c=0$ otherwise
+-   $V_c = 1$ for trials with a concave change, $V_c=0$ otherwise
+-   $N_c = 1$ for trials with no change, $N_c=0$ otherwise\pause
+
+We also set $\beta = \sfrac{1}{2}$\pause
+$$
+p(t_{p,c}, x_{p,c})  =  W(\emph{\theta_{p} + \lambda_c},\alpha_{c},\tau_{c},\sfrac{1}{2})$$ $$ =  W(\emph{\theta_{p} + \mu + \gamma_1 Q_{c} + \gamma_2 V_{c} + \gamma_3 Q_{c}V_{c} + \gamma_4 N_c},\alpha_{c},\tau_{c},\sfrac{1}{2})
+$$
+
+## Process models of speeded choice response time
+
+\begin{minipage}{.60\textwidth}
+\centering
+\includegraphics[scale=0.20,bb=100 0 1000 625]{includes/ezdiff_vpw.eps}
+\end{minipage}
+\begin{minipage}{.35\textwidth}
+\begin{tabular}{lrr}
+\toprule
+\multicolumn{1}{c}{} & \multicolumn{2}{c}{Posterior} \\
+\cline{2-3}
+ & Mean  & SD \\
+\cmidrule[0.4pt]{1-3}
+$\mu$ & 0.304 & 0.174 \\
+$\gamma_1$ & -0.464 & 0.247 \\
+$\gamma_2$ & 0.729 & 0.243 \\
+$\gamma_3$ & -0.408 & 0.341 \\
+$\gamma_4$ & 0.936 & 0.246 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+
+$$
+p(t_{p,c}, x_{p,c})  = W(\emph{\theta_{p} + \mu + \gamma_1 Q_{c} + \gamma_2 V_{c} + \gamma_3 Q_{c}V_{c} + \gamma_4 N_c},\alpha_{p},\tau_{p},\sfrac{1}{2})
+$$
+
+(Note: Find the rest of the analysis on \url{osf.io/hf96a}.)
+
+## Random effects, manifest, latent
+
+We have now seen two kinds of hierarchy:
+
+ - Random effects: There are individual differences but everyone is from the same population
+ - Regression style: There are individual differences and they are party explained by observed predictors
+\pause 
+
+Observed predictors are often called _manifest_.\pause
+
+Predictors may be unobserved, in which case we call them _latent_.
+
+## A cognitive latent variable model
+
+Suppose that participants perform multiple tasks, and we expect their drift rate to be affected by their (unobserved) ability to inhibit errors, $E_p$ and to direct attention $A_p$.
+
+$$\delta_{p,i} = \lambda_0 + \lambda_1 E_p + \lambda_2 A_p - \beta_i$$
+\pause
+This looks very similar (and it is) but remember that $E$ and $A$ are unobserved and so have to be estimated.  This complicates things a lot, but it is possible [@Vandekerckhove2014].
+
+## Hierarchical model building blocks
+
+ - _Marginal distribution_: Distribution of the data given all parameters (ideally based on relevant theory)
+ - _Link functions_: Optionally, to map range-restricted parameters to the real line
+ - _Hierarchy_: Distributions of individual-level parameters given higher-order parameters (usually just normals)
+ - _Structure_: Statistical relationships between higher-order model parameters
+   - Random effects: Parameters simply vary between persons
+   - Manifest predictors: Parameter variability is in part explained by observed predictors
+   - Latent predictors: Parameter variability is in part explained by unobserved predictors
+
+
+## Relevant recorded lectures
+
+### Item response theory
+https://www.youtube.com/watch?v=dUjh2L1jy8I
+
+### Speeded response times
+https://www.youtube.com/watch?v=AnuaLG5rYb8
+
+### Accumulator models of response time
+https://www.youtube.com/watch?v=zgKAG0uoeDQ
+
+### Explanatory process models
+https://www.youtube.com/watch?v=bkUnnm1E7sY
+
+### Cognitive latent variable models
+https://www.youtube.com/watch?v=2XVd7bcXQ10
+
+## References
