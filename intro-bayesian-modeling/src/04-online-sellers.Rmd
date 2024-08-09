@@ -28,7 +28,7 @@ Three & 186 & 200 & 93\% \\
 \end{tabular}
 \end{center}
 
-- The research question is to infer from these data which seller has the highest probability of providing a positive buying experience.
+- The research question is to infer from these data which seller has the highest probability of generating a positive user evaluation.
 
 ## Online Sellers (Continued)
 
@@ -61,7 +61,7 @@ Three & 186 & 200 & 93\% \\
 
 ## Rate Inferences
 
-- The posterior distributions for the underlying rate of positive ratings show what values are possible, based on the data and the assumptions of the model.
+- The posterior distributions for the underlying rate of positive ratings show what values are plausible, based on the data and the assumptions of the model.
 
 \begin{figure}[h]
 \centering

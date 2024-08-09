@@ -12,7 +12,7 @@ knit: (function(inputFile, encoding) {
 
 ## The sinister serologist
 \pause
-In the research labs of the Church of Human Potential, Reverend William Stryker oversees the Mutant Serology Department. One project is to develop a field test for the ``X gene" that distinguishes mutants from baseline humans.\pause
+In the research labs of the Church of Human Potential, Reverend William Stryker oversees the Mutant Serology Department.\pause{} One project is to develop a field test for the ``X gene" that distinguishes mutants from baseline humans.\pause
 
 \begin{figure}[h]
 \centering\vspace{2em}
@@ -45,6 +45,6 @@ The posterior probability that a subject is a mutant, given it is diagnosed as b
 ## The sinister serologist
 An advantage of using Bayes' Rule in this way is that it gracefully extends to more complex scenarios.
 
-Suppose that Stryker knows that his diagnosis is statistically independent from the diagnosis of his research associate Didier Raoult, and suppose that both Stryker and Raoult return the mutant diagnosis. Now what is the posterior probability that the subject is a mutant?
+Suppose that Stryker knows that his diagnosis is statistically independent from the diagnosis of his research associate Didier Raoult, and suppose that both Stryker and Raoult return the mutant diagnosis. Now what is the posterior probability that the subject is a mutant?\pause
 
 It is $\approx .71$.

@@ -30,8 +30,9 @@ p(.8 \leq P_R & \leq .9 | \#R, \#W) = \\
 \end{align*}
 
 ## Posterior inference
-- A more continuous case on $x = \frac{P_R +1}{2}$
-    - $p(x) = K x^{\alpha-1}  (1 - x)^{\beta-1} = B(x|\alpha, \beta)$
+- A more continuous case on $x = 2P_R - 1$
+    - $x \in (0,1)$ is a convenient way to say $P_R \in (0.5, 1)$
+    - $p(x) = B(x|\alpha, \beta) = K x^{\alpha-1}  (1 - x)^{\beta-1}$
     - Beta distribution, say $\alpha = \beta = 2$\pause
 
 ```{r fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, trap1}
@@ -48,14 +49,20 @@ barplot(prior.usc, main="wine",
 ```
 
 ## Posterior inference
-- A more continuous case on $x = \frac{P_R +1}{2}$
-    - $p(x) = K x^{\alpha-1}  (1 - x)^{\beta-1} = B(x|\alpha, \beta)$
+- A more continuous case on $x = 2P_R - 1$
+    - $p(x) = B(x|\alpha, \beta) = K x^{\alpha-1} (1 - x)^{\beta-1}$
     - Beta distribution, say $\alpha = \beta = 2$
     - Likelihood is the same:
 $p(\#R, \#W | P_R) = C P_R^{\#R} (1 - P_R)^{\#W}$
     - So the posterior must be:
-$p(P_R | \#R, \#W) \propto \left(\frac{P_R +1}{2}\right)^{\alpha-1} \left(1-\frac{P_R +1}{2}\right)^{\beta-1}$
+$p(P_R | \#R, \#W) \propto \left(2P_R - 1\right)^{\alpha-1} \left(1-(2P_R - 1)\right)^{\beta-1}$
+$\times P_R^{\#R} (1 - P_R)^{\#W}$\pause
 
+\small
+$\Rightarrow p(P_R | \#R, \#W) \propto \left(2P_R - 1\right)^{\alpha-1} \left(2-2P_R\right)^{\beta-1} P_R^{\#R} (1 - P_R)^{\#W}$
+
+\normalsize
+... now what?  What's the mean and variance of this?
 
 ## Functional programming {.build}
 Sometimes it is useful in R to turn a function into a variable to change it quickly
@@ -67,14 +74,14 @@ funcname <- function(n, x) { rep(x, n) }
 
 So that prior and likelihood can be written like:
 ```{r eval=FALSE, echo=TRUE}
-prior <- function(p) { dbeta(2 * (p-.5), 2, 2) }
+prior <- function(p) { dbeta(2*p - 1), 2, 2) }
 likelihood <- function(p) { dbinom(5, 6, p) }
 ```
 
 ## Functional programming
 Prior and likelihood:
 ```{r eval=TRUE, echo=TRUE}
-prior <- function(p) { dbeta(2 * (p-.5), 2, 2) }
+prior <- function(p) { dbeta(2*p - 1, 2, 2) }
 likelihood <- function(p) { dbinom(5, 6, p) }
 ```
 
@@ -86,7 +93,7 @@ post.usc  <- function(p) { prior(p) * likelihood(p) }
 Exercise: implement this, plot the three functions
 
 ## Functional programming
-```{r fig.width = 4, fig.height = 3, fig.align='center', eval=TRUE, echo=TRUE}
+```{r fig.width = 4.5, fig.height = 2, fig.align='center', eval=TRUE, echo=TRUE}
 par(mfrow=c(1,3))
 curve(prior, 0.5, 1)
 curve(likelihood, 0.5, 1)
@@ -94,7 +101,7 @@ curve(post.usc, 0.5, 1)
 ```
 
 ## Posterior inference
-- These graphs don’t tell us the mean of the posterior (or any other useful statistic)
+- These graphs still don’t tell us the mean of the posterior (or any other useful statistic)
 - How do we determine the mean of an arbitrary, somewhat complicated function?
 - As it turns out, drawing random samples from a distribution is an efficient way to do that
     - Methods for doing this are called Monte Carlo methods
@@ -164,6 +171,7 @@ lines(domain, post.usc(domain)/K$value, lwd=3, col='red')
     - ... or indeed any quality we fancy
 
 ## Generative model representation
+\pause
 - Basic unit of a Bayesian model is a distribution function
 - The posterior is defined through a \emph{generative model representation}
     - ... which is basically a sequence of distributional assumptions
@@ -260,7 +268,7 @@ $${\mathcal{M}}_{sdt}: \begin{cases}
 ```{r fig.width = 4.5, fig.height = 3.5, fig.align='center', message=FALSE, results = 'hide', echo=FALSE, jags}
 library(rjags)
 
-data <- list(h = 32, sigtrials=39, f=12, noistrials=60)
+data <- list(h=32, sigtrials=39, f=12, noistrials=60)
 
 modelString = "
     model {
@@ -285,8 +293,8 @@ plot(samples)
 ```
 
 ## Signal detection theory ~ summary statistics
+\small
 ```{r, echo=TRUE, summary}
-
 summary(samples)$statistics
 
 summary(samples)$quantiles
@@ -295,7 +303,6 @@ summary(samples)$quantiles
 ## Signal detection theory ~ convergence
 \small
 ```{r, echo=TRUE, convergence}
-
 effectiveSize(samples)
 
 gelman.diag(samples)

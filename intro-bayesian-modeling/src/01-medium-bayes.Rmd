@@ -293,7 +293,8 @@ legend(legend=c('prior','posterior'),
     - Alright, suppose that the ladies actually made no error in the first 6 trials. How many more will it take before the posterior
 probability of $P_R = 1$ dominates the alternatives?
          - After 34 corrects, $p(P_R |data)$ for wine tasting accrues at $P_R = 1$
-         - ... but nothing Dr. Muriel does will convince us that $P_R = 1$, because a priori, $p(P_R = 1) = 0$. Cromwell's rule is the recommendation to give a prior nonzero mass at any point that is not a logical impossibility.
+         - ... but nothing Dr. Muriel does will convince us that $P_R = 1$, because a priori, $p(P_R = 1) = 0$.
+         - _Cromwell's Rule_ is a general recommendation to give a prior nonzero mass at any point that is not a logical impossibility.
 
 ## Summary
 - Fisher argued for a dichotomy: either
