@@ -4,8 +4,6 @@ cogs107/
 .Rhistory
 intro-bayesian-modeling/src/09-steve-animation.R
 
-intro-bayesian-modeling/src/02-advanced-bayes-solution.Rmd
-intro-bayesian-modeling/pdf/02-advanced-bayes-solution.pdf
 intro-bayesian-modeling/src/05-online-sellers-solution.Rmd
 intro-bayesian-modeling/pdf/05-online-sellers-solution.pdf
 intro-bayesian-modeling/src/onlineSellers_solution.jags
