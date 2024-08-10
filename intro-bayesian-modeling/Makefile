@@ -8,6 +8,7 @@ all: pdf/00-intro-bayes.pdf \
      pdf/03-super-bayes.pdf \
      pdf/05-online-sellers-solution.pdf \
      pdf/04-online-sellers.pdf \
+     pdf/06-signal-detection-theory-solution.pdf \
      pdf/10-mpt-recognition-memory.pdf \
      pdf/11-mpt-with-jags.pdf \
      pdf/12-mpt-exercise.pdf \
