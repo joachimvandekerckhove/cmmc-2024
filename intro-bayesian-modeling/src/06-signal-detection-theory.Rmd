@@ -26,8 +26,8 @@ $${\mathcal{M}}_{sdt}: \begin{cases}
 \small
 
      library(rjags)
-     data <- list( h = 32 ,  sigtrials  = 39 ,
-                   f = 12 ,  noistrials = 60 )
+     data <- list( h = 60 ,  sigtrials  = 100 ,
+                   f = 11 ,  noistrials = 100 )
      modelString = "
          model {
              ## Complete this model
@@ -55,7 +55,7 @@ $${\mathcal{M}}_{sdt}: \begin{cases}
 ```{r fig.width = 4.5, fig.height = 3.5, fig.align='center', message=FALSE, results = 'hide', echo=FALSE, jags}
 library(rjags)
 
-data <- list(h=32, sigtrials=39, f=12, noistrials=60)
+data <- list(h=60, sigtrials=100, f=11, noistrials=100)
 
 modelString = "
     model {
