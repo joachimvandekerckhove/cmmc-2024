@@ -34,4 +34,7 @@ tidy:
 clean:
 	-rm -f pdf/*
 
+watch:
+	while true; do $(MAKE) -q || $(MAKE); sleep 0.5; done
+
 .PHONY: all tidy clean

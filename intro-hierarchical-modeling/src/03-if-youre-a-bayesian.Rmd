@@ -1,5 +1,5 @@
 ---
-title: "If you're a Bayesian you can do anything that God forbids ( - Willem Heiser)"
+title: "If you're a Bayesian you can do everything that God forbids ( - Willem Heiser)"
 author: "Joachim Vandekerckhove"
 output:
   beamer_presentation:
@@ -19,8 +19,6 @@ library(coda)
 library(tibble)
 library(dplyr)
 
-options(scipen=1, digits=2)
-
 # Set seed for reproducibility
 set.seed(123)
 ```
@@ -35,15 +33,16 @@ set.seed(123)
 
 ```{r, fig.width = 4, fig.height = 3, fig.align='center', echo=TRUE, message=FALSE}
 N <- 80
-group <- rep(1:2, each = N/2)
+group <- rep(1:2, each = N/2) # Make two groups
+# True score for each participant depends on group
 true_score <-
   rnorm(N,
         mean = rep(c(50, 55), each = N/2),
-        sd   = 2)  # True scores for each participant
+        sd   = 2) 
+# Observations are noisy
 observed_score <- true_score +
-  rnorm(N,
-        mean =  0,
-        sd   =  5)  # Noisy observations
+  rnorm(N, mean = 0, sd = 5)
+
 data <- data.frame(participant = 1:N,
                    group = factor(group),
                    true_score, observed_score)
@@ -145,5 +144,86 @@ print(p2)
 The difference between groups is well recovered as $`r summary_diff_mu[[1]]` \pm `r summary_diff_mu[[2]]`$, even though the true scores within each group are poorly recovered.
 
 ```{r, fig.width = 3, fig.height = 2, fig.align='center', echo=FALSE, message=FALSE}
+print(p2)
+```
+
+## Perform inference with no actual data
+
+Suppose these were scores from a test (and suppose the two groups are an "on-track" group and an "advanced" group).  One student from the advanced group missed class. What do we know about student $N+1$?
+
+##
+```{r}
+model_string <- "
+model {
+  for (i in 1:N) {
+    # Likelihood
+    observed_score[i] ~ dnorm(true_score[i], tau)
+    # Hierarchical model
+    true_score[i]     ~ dnorm(mu[group[i]], tau_true)
+  }
+  diff_mu ~ dnorm(0, 0.001)
+  mu[1]   ~ dunif(0, 100)
+  mu[2] <- mu[1] + diff_mu
+  tau      ~ dgamma(0.1, 0.1)
+  tau_true ~ dgamma(0.1, 0.1)
+
+  true_score[N+1] ~ dnorm(mu[2], tau_true)
+  observed_score[N+1] ~ dnorm(true_score[N+1], tau)
+}
+"
+```
+##
+```{r}
+data_list <- list(
+  N = N,
+  observed_score = c(data$observed_score, NA),
+  group = as.numeric(data$group)
+)
+
+# Initial values
+inits <- function() {
+  list(
+    tau        = rgamma(1, 0.1, 0.1),
+    tau_true   = rgamma(1, 0.1, 0.1),
+    true_score = runif(N+1, 0, 100)
+  )
+}
+```
+##
+```{r}
+jags_model <- jags.model(textConnection(model_string),
+                         data     = data_list,
+                         inits    =     inits,
+                         n.chains =        3 ,
+                         n.adapt  =     1000 )
+```
+##
+\footnotesize
+```{r}
+update(jags_model, n.iter = 1000)
+samples <- coda.samples(jags_model,
+                        variable.names = c("diff_mu",
+                                           "true_score",
+                                           "observed_score"),
+                        n.iter = 5000)
+```
+
+```{r}
+# Summarize the results
+summary_new <- summary(samples)$
+  statistics[c("true_score[81]","observed_score[81]"), 
+             c("Mean", "SD")]
+print(summary_new)
+```
+##
+\footnotesize
+```{r}
+# Extract true scores from the posterior samples
+true_scores_posterior_new <- as.data.frame(as.matrix(samples)) %>%
+  select(starts_with("true_score[81]"))
+
+```
+##
+```{r, fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, message=FALSE}
 print(p2)
 ```
