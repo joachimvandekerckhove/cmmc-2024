@@ -517,7 +517,7 @@ print(summary_new)
 ```
 ##
 \footnotesize
-```{r}
+```{r, echo-FALSE, include=FALSE}
 # Extract true scores from the posterior samples
 true_scores_posterior_new <- as.data.frame(as.matrix(samples)) %>%
   select(starts_with("true_score[81]"))
