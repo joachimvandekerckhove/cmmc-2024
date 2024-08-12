@@ -93,3 +93,27 @@ k_i \sim \mathrm{binomial}\bigl(\theta, n_i\bigr)
 
 \includegraphics[width=\textwidth, trim={0cm 0cm 0cm 0cm}, clip]{includes/onlineSellersHierarchical_onlineSellers_2.eps}
 
+## Exercise
+
+Implement the hierarchical sellers model.  Who is better?
+
+\[
+\theta_i \sim \mathrm{Gaussian}\bigl(\mu, \sigma^2\bigr)\mathrm{T}(0,1)
+\]
+\[
+k_i \sim \text{Bernoulli}(\theta_i, n_i)
+\]
+
+\begin{center}
+\begin{tabular}{cccc}
+\hline
+Seller & Positive & Total & Percentage \\
+\hline
+One & 10 & 10 & 100\% \\
+Two & 48 & 50 & 96\% \\
+Three & 186 & 200 & 93\% \\
+Four & 75 & 100 & 75\% \\
+Five & 1 & 2 & 50\% \\
+\hline
+\end{tabular}
+\end{center}
