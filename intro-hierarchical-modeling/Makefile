@@ -3,7 +3,6 @@ RERUNBIB := "No file.*\.bbl|Citation.*undefined|.*There were undefined reference
 
 all: pdf/01-the-aggregation-fallacy.pdf \
      pdf/02-the-aggregation-fallacy-solution.pdf \
-     pdf/03-if-youre-a-bayesian.pdf \
      pdf/04-online-sellers-revisited.pdf \
      pdf/05-online-sellers-revisited-solution.pdf \
      pdf/06-student-grades.pdf \
