@@ -1,0 +1,280 @@
+---
+title: "Online sellers revisited worksheet"
+author: "Joachim Vandekerckhove"
+output:
+  beamer_presentation:
+    incremental: yes
+header-includes:
+  - \input{includes/beamerpheader.tex}
+knit: (function(inputFile, encoding) {
+    rmarkdown::render(inputFile, encoding = encoding, output_dir = "../pdf")
+  })
+---
+
+## Set up environment
+
+```{r setup, include=TRUE, echo=TRUE, message=FALSE}
+library(rjags)
+library(coda)
+library(ggplot2)
+library(dplyr)
+library(readr)
+```
+
+## Data
+
+Load the data and necessary colors.
+
+```{r data}
+k <- c(10, 48, 186,  75, 1)
+n <- c(10, 50, 200, 100, 2)
+
+nSellers <- length(k)
+
+sellerColors <- c("#003366", "#B00000", "#FFD700",
+                  "#8FBC8F", "#778899")
+```
+
+## JAGS Models
+
+Create the JAGS model files for independent, aggregate, and hierarchical models and run MCMC sampling for each model.
+
+```{r mcmc-sampling}
+# Define parameters for MCMC
+nChains  <-    8
+nBurnin  <- 1000
+nSamples <- 5000
+nThin    <-    1
+
+samplesList <- list()
+```
+##
+```{r mcmc-sampling-independent, include=TRUE}
+independent_model <- "
+model{
+  for (i in 1:nSellers){
+    k[i] ~ dbin(theta[i], n[i])
+    kPostpred[i] ~ dbin(theta[i], n[i])
+    theta[i] ~ dunif(0, 1)
+  }
+}
+"
+modelFile <- "onlineSellersIndependent.jags"
+writeLines(independent_model, con = modelFile)
+```
+##
+```{r}
+data_list <- list(k = k, n = n, nSellers = nSellers)
+
+inits <- function() list(theta = runif(nSellers))
+
+params <- c("theta", "kPostpred")
+```
+##
+```{r}
+jags_model <- jags.model(modelFile,
+                         data     = data_list,
+                         inits    = inits,
+                         n.chains = nChains,
+                         n.adapt  = nBurnin)
+```
+##
+```{r}
+update(jags_model, n.iter = nBurnin)
+samples <- coda.samples(jags_model,
+                        variable.names = params,
+                        n.iter         = nSamples,
+                        thin           = nThin)
+
+samplesList[[modelFile]] <- samples
+```
+
+##
+```{r mcmc-sampling-aggregate, include=TRUE}
+aggregate_model <- "
+model{
+  for (i in 1:nSellers){
+    k[i] ~ dbin(theta, n[i])
+    kPostpred[i] ~ dbin(theta, n[i])
+  }
+  theta ~ dunif(0, 1)
+}
+"
+modelFile <- "onlineSellersAggregate.jags"
+writeLines(aggregate_model, con = modelFile)
+```
+##
+```{r}
+data_list <- list(k = k, n = n, nSellers = nSellers)
+
+inits <- function() list(theta = runif(1))
+
+params <- c("theta", "kPostpred")
+```
+##
+```{r}
+jags_model <- jags.model(modelFile,
+                         data     = data_list,
+                         inits    = inits,
+                         n.chains = nChains,
+                         n.adapt  = nBurnin)
+```
+##
+```{r}
+update(jags_model, n.iter = nBurnin)
+samples <- coda.samples(jags_model,
+                        variable.names = params,
+                        n.iter         = nSamples,
+                        thin           = nThin)
+
+samplesList[[modelFile]] <- samples
+```
+
+##
+```{r mcmc-sampling-hierarchical, include=TRUE}
+hierarchical_model <- "
+model{
+  for (i in 1:nSellers){
+    k[i] ~ dbin(theta[i], n[i])
+    kPostpred[i] ~ dbin(theta[i], n[i])
+    theta[i] ~ dnorm(mu, 1/sigma^2)T(0, 1)
+  }
+  mu ~ dunif(0, 1)
+  sigma ~ dunif(0, 1)
+}
+"
+modelFile <- "onlineSellersHierarchical.jags"
+writeLines(hierarchical_model, con = modelFile)
+```
+##
+```{r}
+data_list <- list(k = k, n = n, nSellers = nSellers)
+
+inits <- function() list(theta = runif(nSellers),
+                         mu    = runif(1),
+                         sigma = runif(1))
+
+params <- c("theta", "kPostpred", "mu", "sigma")
+```
+##
+```{r}
+jags_model <- jags.model(modelFile,
+                         data     = data_list,
+                         inits    = inits,
+                         n.chains = nChains,
+                         n.adapt  = nBurnin)
+```
+##
+```{r}
+update(jags_model, n.iter = nBurnin)
+samples <- coda.samples(jags_model,
+                        variable.names = params,
+                        n.iter         = nSamples,
+                        thin           = nThin)
+
+samplesList[[modelFile]] <- samples
+```
+
+## Inspect Results
+
+Print the multivariate Gelman diagnostic for each model.
+
+```{r inspect-results, results='asis'}
+mpsrf <- list()
+modelList <- c("onlineSellersIndependent.jags",
+               "onlineSellersAggregate.jags",
+               "onlineSellersHierarchical.jags")
+for (modelName in modelList) {
+  samples <- samplesList[[modelName]]
+  gelman_diag <- gelman.diag(samples,
+                             multivariate=TRUE)
+  mpsrf[[modelName]] <- gelman_diag$mpsrf
+}
+gelman_df <- data.frame(Model = names(mpsrf),
+                        MPSRF = unlist(mpsrf))
+```
+
+## Inspect Results
+
+Print the multivariate Gelman diagnostic for each model.
+```{r}
+knitr::kable(gelman_df, row.names = FALSE,
+             col.names = c("Model",
+                           "Multivariate PSRF"))
+```
+
+## Analysis and Plots
+
+Generate plots for posterior distributions and posterior predictive distributions.
+
+```{r plot-posteriors, fig.width=10, fig.height=6, echo=FALSE}
+p <- list()
+for (modelName in modelList) {
+  samples <- samplesList[[modelName]]
+  chains <- as.matrix(samples)
+
+  if (modelName == "onlineSellersIndependent.jags" ||
+      modelName == "onlineSellersHierarchical.jags") {
+    density_data <- data.frame()
+
+    for (i in 1:nSellers) {
+      density_vals <- density(
+        chains[, paste0("theta[", i, "]")],
+        from = 0, to = 1)
+      density_data <- rbind(
+        density_data,
+        data.frame(x = density_vals$x,
+                   y = density_vals$y,
+                   Seller = paste("Seller", i)))
+    }
+
+    p[[modelName]] <- ggplot(density_data, aes(x = x, y = y, fill = Seller)) +
+      geom_area(position = "identity", alpha = 0.6) +
+      scale_fill_manual(values = sellerColors) +
+      labs(title = paste(modelName),
+           x = "Rate", y = "Density") +
+      theme_minimal() +
+      theme(legend.position = c(0.2, 0.9),
+            legend.justification = "top",
+            legend.key.size = unit(0.5, "lines"))
+  } else if (modelName == "onlineSellersAggregate.jags") {
+    density_vals <- density(chains[, "theta"], from = 0, to = 1)
+    p[[modelName]] <- ggplot(data.frame(x = density_vals$x, y = density_vals$y), aes(x = x, y = y)) +
+      geom_area(fill = sellerColors[length(sellerColors)], alpha = 0.6) +
+      labs(title = "onlineSellersAggregate.jasp",
+           x = "Rate", y = "Density") +
+      theme_minimal() +
+      theme(legend.position = c(0.2, 0.9),
+            legend.justification = "top",
+            legend.key.size = unit(0.5, "lines"))
+  }
+}
+```
+##
+```{r, fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, message=FALSE}
+print(p$onlineSellersIndependent.jags)
+```
+##
+```{r, fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, message=FALSE}
+print(p$onlineSellersAggregate.jags)
+```
+##
+```{r, fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, message=FALSE}
+print(p$onlineSellersHierarchical.jags)
+```
+
+##
+
+```{r plot-joint-posterior, fig.width = 4, fig.height = 3, fig.align='center', echo=FALSE, message=FALSE}
+samples <- samplesList[["onlineSellersHierarchical.jags"]]
+chains <- as.matrix(samples)
+
+mu <- chains[, "mu"]
+sigma <- chains[, "sigma"]
+
+ggplot(data.frame(mu = mu, sigma = sigma), aes(x = mu, y = sigma)) +
+  geom_bin2d(bins = 50, aes(fill = after_stat(count))) +
+  scale_fill_gradient(low = "white", high = sellerColors[1]) +
+  labs(title = "Joint Posterior for Hierarchical Model", x = "Group Mean", y = "Group Standard Deviation") +
+  theme_minimal()
+```

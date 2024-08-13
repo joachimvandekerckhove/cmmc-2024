@@ -7,9 +7,3 @@ intro-bayesian-modeling/src/09-steve-animation.R
 intro-bayesian-modeling/src/12-mpt-solution.Rmd
 intro-bayesian-modeling/pdf/12-mpt-solution.pdf
 intro-bayesian-modeling/src/mpt_solution.jags
-
-intro-hierarchical-modeling/src/05-online-sellers-revisited-solution.Rmd
-intro-hierarchical-modeling/pdf/05-online-sellers-revisited-solution.pdf
-intro-hierarchical-modeling/src/onlineSellersAggregate.jags
-intro-hierarchical-modeling/src/onlineSellersHierarchical.jags
-intro-hierarchical-modeling/src/onlineSellersIndependent.jags
