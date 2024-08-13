@@ -101,7 +101,7 @@ Implement the hierarchical sellers model.  Who is better?
 \theta_i \sim \mathrm{Gaussian}\bigl(\mu, \sigma^2\bigr)\mathrm{T}(0,1)
 \]
 \[
-k_i \sim \text{Bernoulli}(\theta_i, n_i)
+k_i \sim \text{Binomial}(\theta_i, n_i)
 \]
 
 \begin{center}
