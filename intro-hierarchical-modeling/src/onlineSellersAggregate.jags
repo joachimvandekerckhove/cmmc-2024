@@ -1,0 +1,9 @@
+
+model{
+  for (i in 1:nSellers){
+    k[i] ~ dbin(theta, n[i])
+    kPostpred[i] ~ dbin(theta, n[i])
+  }
+  theta ~ dunif(0, 1)
+}
+

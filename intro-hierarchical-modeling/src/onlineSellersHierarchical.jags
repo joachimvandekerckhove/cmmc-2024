@@ -1,0 +1,11 @@
+
+model{
+  for (i in 1:nSellers){
+    k[i] ~ dbin(theta[i], n[i])
+    kPostpred[i] ~ dbin(theta[i], n[i])
+    theta[i] ~ dnorm(mu, 1/sigma^2)T(0, 1)
+  }
+  mu ~ dunif(0, 1)
+  sigma ~ dunif(0, 1)
+}
+
